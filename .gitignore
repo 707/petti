@@ -1,0 +1,10 @@
+.DS_Store
+.gocache/
+.gomodcache/
+.covers*.out
+bin/
+dist/
+coverage.out
+*.log
+*.tmp
+pkgview
