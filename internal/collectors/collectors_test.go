@@ -3,9 +3,12 @@ package collectors
 import (
 	"context"
 	"errors"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/nad/pkgview/internal/model"
 )
@@ -43,6 +46,13 @@ func TestBrewCollectorCollectsFormulaeAndCasks(t *testing.T) {
 			"brew leaves --installed-on-request": {Stdout: "gh\nfzf"},
 			"brew list --versions":               {Stdout: "gh 2.47.0\nfzf 0.54.0"},
 			"brew list --cask --versions":        {Stdout: "font-hack-nerd-font 3.4.0"},
+			"brew info --json=v2 gh fzf": {Stdout: `{"formulae":[
+				{"name":"gh","desc":"GitHub CLI","outdated":true,"installed":[{"time":1704067200}]},
+				{"name":"fzf","desc":"Fuzzy finder","outdated":false,"installed":[{"time":1706745600}]}
+			],"casks":[]}`},
+			"brew info --json=v2 --cask font-hack-nerd-font": {Stdout: `{"formulae":[],"casks":[
+				{"token":"font-hack-nerd-font","desc":"Fonts","outdated":false,"installed_time":1709251200}
+			]}`},
 		},
 	}
 
@@ -55,9 +65,9 @@ func TestBrewCollectorCollectsFormulaeAndCasks(t *testing.T) {
 	}
 
 	want := []model.Package{
-		{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew},
-		{Name: "fzf", Version: "0.54.0", Source: model.SourceHomebrew},
-		{Name: "font-hack-nerd-font", Version: "3.4.0", Source: model.SourceHomebrewCask},
+		{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew, Description: "GitHub CLI", ActionRequired: "update", UpdatedAt: "2024-01-01"},
+		{Name: "fzf", Version: "0.54.0", Source: model.SourceHomebrew, Description: "Fuzzy finder", ActionRequired: "current", UpdatedAt: "2024-02-01"},
+		{Name: "font-hack-nerd-font", Version: "3.4.0", Source: model.SourceHomebrewCask, Description: "Fonts", ActionRequired: "current", UpdatedAt: "2024-03-01"},
 	}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() packages = %#v, want %#v", pkgs, want)
@@ -223,16 +233,26 @@ func TestBrewCollectorKeepsFormulaeWhenCasksFail(t *testing.T) {
 }
 
 func TestNPMCollectorStripsNPM(t *testing.T) {
+	dir := t.TempDir()
+	packageDir := filepath.Join(dir, "typescript")
+	if err := os.Mkdir(packageDir, 0o755); err != nil {
+		t.Fatalf("Mkdir() error = %v", err)
+	}
+	mtime := time.Date(2024, time.July, 4, 12, 0, 0, 0, time.UTC)
+	if err := os.Chtimes(packageDir, mtime, mtime); err != nil {
+		t.Fatalf("Chtimes() error = %v", err)
+	}
+
 	runner := stubRunner{
 		results: map[string]Result{
-			"npm list -g --depth=0 --json": {Stdout: `{"dependencies":{"npm":{"version":"10.0.0"},"typescript":{"version":"5.4.3"}}}`},
+			"npm list -g --depth=0 --json -l": {Stdout: `{"dependencies":{"npm":{"version":"10.0.0"},"typescript":{"version":"5.4.3","description":"TypeScript language","path":"` + packageDir + `"}}}`},
 		},
 	}
 	pkgs, _, err := NewNPMCollector(runner).Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
-	want := []model.Package{{Name: "typescript", Version: "5.4.3", Source: model.SourceNPM}}
+	want := []model.Package{{Name: "typescript", Version: "5.4.3", Source: model.SourceNPM, Description: "TypeScript language", UpdatedAt: "2024-07-04"}}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() = %#v, want %#v", pkgs, want)
 	}
@@ -252,7 +272,7 @@ func TestNPMCollectorMissingBinary(t *testing.T) {
 func TestNPMCollectorInvalidJSON(t *testing.T) {
 	runner := stubRunner{
 		results: map[string]Result{
-			"npm list -g --depth=0 --json": {Stdout: "{not-json"},
+			"npm list -g --depth=0 --json -l": {Stdout: "{not-json"},
 		},
 	}
 	_, status, err := NewNPMCollector(runner).Collect(context.Background())
@@ -267,7 +287,7 @@ func TestNPMCollectorInvalidJSON(t *testing.T) {
 func TestNPMCollectorTimeout(t *testing.T) {
 	runner := stubRunner{
 		errs: map[string]error{
-			"npm list -g --depth=0 --json": context.DeadlineExceeded,
+			"npm list -g --depth=0 --json -l": context.DeadlineExceeded,
 		},
 	}
 	_, status, err := NewNPMCollector(runner).Collect(context.Background())
@@ -282,7 +302,7 @@ func TestNPMCollectorTimeout(t *testing.T) {
 func TestNPMCollectorExitError(t *testing.T) {
 	runner := stubRunner{
 		results: map[string]Result{
-			"npm list -g --depth=0 --json": {ExitCode: 1, Stderr: "npm failed"},
+			"npm list -g --depth=0 --json -l": {ExitCode: 1, Stderr: "npm failed"},
 		},
 	}
 	_, status, err := NewNPMCollector(runner).Collect(context.Background())
@@ -295,19 +315,131 @@ func TestNPMCollectorExitError(t *testing.T) {
 }
 
 func TestPipCollectorFallsBackToPip3(t *testing.T) {
+	dir := t.TempDir()
+	distInfo := filepath.Join(dir, "ruff-0.3.4.dist-info")
+	if err := os.Mkdir(distInfo, 0o755); err != nil {
+		t.Fatalf("Mkdir() error = %v", err)
+	}
+	mtime := time.Date(2024, time.August, 5, 8, 0, 0, 0, time.UTC)
+	if err := os.Chtimes(distInfo, mtime, mtime); err != nil {
+		t.Fatalf("Chtimes() error = %v", err)
+	}
+
 	runner := stubRunner{
 		paths: map[string]error{"pip": exec.ErrNotFound},
 		results: map[string]Result{
 			"pip3 list --not-required --format=json": {Stdout: `[{"name":"ruff","version":"0.3.4"}]`},
+			"pip3 show ruff":                         {Stdout: "Name: ruff\nSummary: Fast Python linter\nLocation: " + dir},
 		},
 	}
 	pkgs, _, err := NewPipCollector(runner).Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
-	want := []model.Package{{Name: "ruff", Version: "0.3.4", Source: model.SourcePip}}
+	want := []model.Package{{Name: "ruff", Version: "0.3.4", Source: model.SourcePip, Description: "Fast Python linter", UpdatedAt: "2024-08-05"}}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() = %#v, want %#v", pkgs, want)
+	}
+}
+
+func TestMetadataHelpers(t *testing.T) {
+	if got := formatUnixDate(1704067200); got != "2024-01-01" {
+		t.Fatalf("formatUnixDate() = %q, want %q", got, "2024-01-01")
+	}
+	if got := formatUnixDate(0); got != "" {
+		t.Fatalf("formatUnixDate(0) = %q, want empty", got)
+	}
+	if got := brewActionLabel(true, false, false); got != "update" {
+		t.Fatalf("brewActionLabel(update) = %q", got)
+	}
+	if got := brewActionLabel(false, true, false); got != "attention" {
+		t.Fatalf("brewActionLabel(deprecated) = %q", got)
+	}
+	if got := brewActionLabel(false, false, true); got != "attention" {
+		t.Fatalf("brewActionLabel(disabled) = %q", got)
+	}
+	if got := brewActionLabel(false, false, false); got != "current" {
+		t.Fatalf("brewActionLabel(current) = %q", got)
+	}
+
+	info := parsePipShowOutput("Name: openai\nSummary: Official SDK\nLocation: /tmp/site\n---\nName: anthropic\nSummary: Anthropic SDK\nLocation: /tmp/site")
+	if got := info["openai"].Summary; got != "Official SDK" {
+		t.Fatalf("parsePipShowOutput(summary) = %q", got)
+	}
+	if got := info["anthropic"].Location; got != "/tmp/site" {
+		t.Fatalf("parsePipShowOutput(location) = %q", got)
+	}
+
+	if got := formatFileDate(filepath.Join(t.TempDir(), "missing")); got != "" {
+		t.Fatalf("formatFileDate(missing) = %q, want empty", got)
+	}
+
+	pkgs := []model.Package{{Name: "gh", Source: model.SourceHomebrew}}
+	if got := enrichBrewFormulae(pkgs, "not-json"); !reflect.DeepEqual(got, pkgs) {
+		t.Fatalf("enrichBrewFormulae(invalid) = %#v, want unchanged", got)
+	}
+	if got := enrichBrewFormulae(pkgs, `{"formulae":[{"name":"other","desc":"Other"}]}`); !reflect.DeepEqual(got, pkgs) {
+		t.Fatalf("enrichBrewFormulae(missing) = %#v, want unchanged", got)
+	}
+
+	casks := []model.Package{{Name: "ghostty", Source: model.SourceHomebrewCask}}
+	if got := enrichBrewCasks(casks, "not-json"); !reflect.DeepEqual(got, casks) {
+		t.Fatalf("enrichBrewCasks(invalid) = %#v, want unchanged", got)
+	}
+	if got := enrichBrewCasks(casks, `{"casks":[{"token":"other","desc":"Other"}]}`); !reflect.DeepEqual(got, casks) {
+		t.Fatalf("enrichBrewCasks(missing) = %#v, want unchanged", got)
+	}
+
+	if got := findPipUpdatedAt("", "openai"); got != "" {
+		t.Fatalf("findPipUpdatedAt(empty) = %q, want empty", got)
+	}
+	if got := findPipUpdatedAt(t.TempDir(), "missing"); got != "" {
+		t.Fatalf("findPipUpdatedAt(missing) = %q, want empty", got)
+	}
+}
+
+func TestMetadataCommandsGracefullyFallback(t *testing.T) {
+	baseFormulae := []model.Package{{Name: "gh", Source: model.SourceHomebrew}}
+	if got := NewBrewCollector(stubRunner{}).addFormulaMetadata(context.Background(), nil); got != nil {
+		t.Fatalf("addFormulaMetadata(nil) = %#v, want nil", got)
+	}
+	formulaRunner := stubRunner{errs: map[string]error{"brew info --json=v2 gh": context.DeadlineExceeded}}
+	if got := NewBrewCollector(formulaRunner).addFormulaMetadata(context.Background(), append([]model.Package(nil), baseFormulae...)); !reflect.DeepEqual(got, baseFormulae) {
+		t.Fatalf("addFormulaMetadata(err) = %#v, want unchanged", got)
+	}
+
+	baseCasks := []model.Package{{Name: "ghostty", Source: model.SourceHomebrewCask}}
+	if got := NewBrewCollector(stubRunner{}).addCaskMetadata(context.Background(), nil); got != nil {
+		t.Fatalf("addCaskMetadata(nil) = %#v, want nil", got)
+	}
+	caskErrRunner := stubRunner{errs: map[string]error{"brew info --json=v2 --cask ghostty": context.DeadlineExceeded}}
+	if got := NewBrewCollector(caskErrRunner).addCaskMetadata(context.Background(), append([]model.Package(nil), baseCasks...)); !reflect.DeepEqual(got, baseCasks) {
+		t.Fatalf("addCaskMetadata(err) = %#v, want unchanged", got)
+	}
+	caskRunner := stubRunner{results: map[string]Result{"brew info --json=v2 --cask ghostty": {ExitCode: 1}}}
+	if got := NewBrewCollector(caskRunner).addCaskMetadata(context.Background(), append([]model.Package(nil), baseCasks...)); !reflect.DeepEqual(got, baseCasks) {
+		t.Fatalf("addCaskMetadata(exit) = %#v, want unchanged", got)
+	}
+
+	if got := NewPipCollector(stubRunner{}).addMetadata(context.Background(), "pip", nil); got != nil {
+		t.Fatalf("addMetadata(nil) = %#v, want nil", got)
+	}
+	pipRunner := stubRunner{errs: map[string]error{"pip show ruff": context.DeadlineExceeded}}
+	basePip := []model.Package{{Name: "ruff", Source: model.SourcePip}}
+	if got := NewPipCollector(pipRunner).addMetadata(context.Background(), "pip", append([]model.Package(nil), basePip...)); !reflect.DeepEqual(got, basePip) {
+		t.Fatalf("addMetadata(err) = %#v, want unchanged", got)
+	}
+	pipExitRunner := stubRunner{results: map[string]Result{"pip show ruff": {ExitCode: 1}}}
+	if got := NewPipCollector(pipExitRunner).addMetadata(context.Background(), "pip", append([]model.Package(nil), basePip...)); !reflect.DeepEqual(got, basePip) {
+		t.Fatalf("addMetadata(exit) = %#v, want unchanged", got)
+	}
+
+	brokenDir := t.TempDir()
+	brokenPath := filepath.Join(brokenDir, "openai-1.0.0.dist-info")
+	if err := os.Symlink(filepath.Join(brokenDir, "missing-target"), brokenPath); err == nil {
+		if got := findPipUpdatedAt(brokenDir, "openai"); got != "" {
+			t.Fatalf("findPipUpdatedAt(broken) = %q, want empty", got)
+		}
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/nad/pkgview/internal/model"
 )
@@ -72,6 +73,7 @@ func (c PipCollector) Collect(ctx context.Context) ([]model.Package, model.Colle
 			Source:  model.SourcePip,
 		})
 	}
+	packages = c.addMetadata(ctx, cmd, packages)
 
 	return packages, model.CollectorStatus{
 		Source: model.SourcePip,
@@ -88,4 +90,30 @@ func (c PipCollector) command() (string, error) {
 		return "pip3", nil
 	}
 	return "", ErrUnavailable
+}
+
+func (c PipCollector) addMetadata(ctx context.Context, command string, packages []model.Package) []model.Package {
+	if len(packages) == 0 {
+		return packages
+	}
+
+	args := []string{"show"}
+	for _, pkg := range packages {
+		args = append(args, pkg.Name)
+	}
+	result, err := c.runner.Run(ctx, command, args...)
+	if err != nil || result.ExitCode != 0 {
+		return packages
+	}
+
+	metadata := parsePipShowOutput(result.Stdout)
+	for index := range packages {
+		info, ok := metadata[strings.ToLower(packages[index].Name)]
+		if !ok {
+			continue
+		}
+		packages[index].Description = info.Summary
+		packages[index].UpdatedAt = findPipUpdatedAt(info.Location, packages[index].Name)
+	}
+	return packages
 }

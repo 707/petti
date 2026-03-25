@@ -12,9 +12,13 @@ const (
 )
 
 type Package struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Source  Source `json:"source"`
+	Name           string `json:"name"`
+	Version        string `json:"version"`
+	Source         Source `json:"source"`
+	Description    string `json:"description,omitempty"`
+	ActionRequired string `json:"action_required,omitempty"`
+	UpdatedAt      string `json:"updated_at,omitempty"`
+	LastUsed       string `json:"last_used,omitempty"`
 }
 
 func (p Package) Key() string {

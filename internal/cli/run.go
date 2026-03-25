@@ -52,6 +52,7 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 	exportTXTPath := fs.String("export-txt", "", "export list to .txt and exit")
 	exportJSONPath := fs.String("export-json", "", "export list to .json and exit")
 	filterValue := fs.String("filter", "", "pre-populate the filter")
+	layoutValue := fs.String("layout", string(tui.LayoutFull), "startup layout: full or compact")
 	_ = fs.Bool("no-color", false, "disable colour output")
 	showVersion := fs.Bool("version", false, "show version and exit")
 
@@ -64,6 +65,10 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 	}
 	if *exportTXTPath != "" && *exportJSONPath != "" {
 		_, _ = fmt.Fprintln(deps.Stderr, "choose only one export flag")
+		return 2
+	}
+	if *layoutValue != string(tui.LayoutFull) && *layoutValue != string(tui.LayoutCompact) {
+		_, _ = fmt.Fprintln(deps.Stderr, "layout must be full or compact")
 		return 2
 	}
 
@@ -89,6 +94,7 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 		Packages: result.Packages,
 		Statuses: result.Statuses,
 		Filter:   *filterValue,
+		Layout:   tui.LayoutMode(*layoutValue),
 		Refresh:  deps.Refresh,
 		Export:   makeExportFunc(deps),
 	})

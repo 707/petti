@@ -11,6 +11,7 @@ import (
 
 	"github.com/nad/pkgview/internal/collectors"
 	"github.com/nad/pkgview/internal/model"
+	"github.com/nad/pkgview/internal/tui"
 )
 
 func TestRunVersion(t *testing.T) {
@@ -102,6 +103,7 @@ func TestRunTUIError(t *testing.T) {
 }
 
 func TestRunTUISuccess(t *testing.T) {
+	var gotModel any
 	code := Run(context.Background(), nil, Deps{
 		Stdout: &bytes.Buffer{},
 		Stderr: &bytes.Buffer{},
@@ -110,10 +112,16 @@ func TestRunTUISuccess(t *testing.T) {
 		},
 		WriteTXT:  func(string, []model.Package) error { return nil },
 		WriteJSON: func(string, []model.Package) error { return nil },
-		RunTUI:    func(tea.Model) error { return nil },
+		RunTUI: func(model tea.Model) error {
+			gotModel = model
+			return nil
+		},
 	})
 	if code != 0 {
 		t.Fatalf("Run() code = %d, want 0", code)
+	}
+	if gotModel == nil {
+		t.Fatal("expected TUI model")
 	}
 }
 
@@ -142,6 +150,43 @@ func TestRunFlagParseError(t *testing.T) {
 	}
 	if stderr.Len() == 0 {
 		t.Fatal("expected parse error output")
+	}
+}
+
+func TestRunLayoutFlag(t *testing.T) {
+	var rendered tui.Model
+	code := Run(context.Background(), []string{"--layout", "compact"}, Deps{
+		Stdout: &bytes.Buffer{},
+		Stderr: &bytes.Buffer{},
+		Refresh: func(context.Context) collectors.CollectResult {
+			return collectors.CollectResult{}
+		},
+		WriteTXT:  func(string, []model.Package) error { return nil },
+		WriteJSON: func(string, []model.Package) error { return nil },
+		RunTUI: func(model tea.Model) error {
+			rendered = model.(tui.Model)
+			return nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("Run() code = %d, want 0", code)
+	}
+	if strings.Contains(rendered.View(), "Selected Package") {
+		t.Fatalf("compact view should not render full-layout detail pane: %q", rendered.View())
+	}
+}
+
+func TestRunRejectsInvalidLayout(t *testing.T) {
+	var stderr bytes.Buffer
+	code := Run(context.Background(), []string{"--layout", "wide"}, Deps{
+		Stdout: &bytes.Buffer{},
+		Stderr: &stderr,
+	})
+	if code != 2 {
+		t.Fatalf("Run() code = %d, want 2", code)
+	}
+	if !strings.Contains(stderr.String(), "layout must be full or compact") {
+		t.Fatalf("stderr = %q", stderr.String())
 	}
 }
 

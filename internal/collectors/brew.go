@@ -86,6 +86,7 @@ func (c BrewCollector) collectFormulae(ctx context.Context) ([]model.Package, mo
 	for i := range packages {
 		packages[i].Version = versions[packages[i].Name]
 	}
+	packages = c.addFormulaMetadata(ctx, packages)
 
 	return packages, model.CollectorStatus{
 		Source: model.SourceHomebrew,
@@ -108,11 +109,44 @@ func (c BrewCollector) collectCasks(ctx context.Context) ([]model.Package, model
 	for name, version := range versions {
 		packages = append(packages, model.Package{Name: name, Version: version, Source: model.SourceHomebrewCask})
 	}
+	packages = c.addCaskMetadata(ctx, packages)
 	return packages, model.CollectorStatus{
 		Source: model.SourceHomebrewCask,
 		Label:  "homebrew-cask",
 		State:  model.CollectorStateReady,
 	}, nil
+}
+
+func (c BrewCollector) addFormulaMetadata(ctx context.Context, packages []model.Package) []model.Package {
+	if len(packages) == 0 {
+		return packages
+	}
+
+	args := []string{"info", "--json=v2"}
+	for _, pkg := range packages {
+		args = append(args, pkg.Name)
+	}
+	result, err := c.runner.Run(ctx, "brew", args...)
+	if err != nil || result.ExitCode != 0 {
+		return packages
+	}
+	return enrichBrewFormulae(packages, result.Stdout)
+}
+
+func (c BrewCollector) addCaskMetadata(ctx context.Context, packages []model.Package) []model.Package {
+	if len(packages) == 0 {
+		return packages
+	}
+
+	args := []string{"info", "--json=v2", "--cask"}
+	for _, pkg := range packages {
+		args = append(args, pkg.Name)
+	}
+	result, err := c.runner.Run(ctx, "brew", args...)
+	if err != nil || result.ExitCode != 0 {
+		return packages
+	}
+	return enrichBrewCasks(packages, result.Stdout)
 }
 
 func parseVersionLines(input string) map[string]string {
