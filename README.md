@@ -27,12 +27,25 @@ brew tap 707/homebrew-petti
 brew install petti
 ```
 
+### Install script
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/707/petti/main/scripts/install.sh | sh
+```
+
+Install to `~/.local/bin` instead:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/707/petti/main/scripts/install.sh | sh -s -- --local
+```
+
 ### From source
 
 ```sh
 git clone https://github.com/707/petti.git
 cd petti
 go build -o petti ./cmd/petti
+./petti
 ```
 
 ### Local development binary
@@ -59,6 +72,12 @@ go run ./cmd/petti
 ```
 
 The app detects packages from supported managers, shows them in a dense terminal grid, and lets you filter, inspect, sort, export, and review uninstall commands without changing your system.
+
+### Version
+
+```sh
+petti --version
+```
 
 ### Useful startup flags
 
@@ -210,23 +229,10 @@ go run ./cmd/petti
 
 ---
 
-## Distribution plan
-
-Once the GitHub repo is live, the best next rollout is:
-
-1. GitHub Releases with prebuilt binaries for macOS and Linux
-2. A Homebrew tap for easy install on macOS and Linuxbrew
-3. A small install script for macOS, Linux, and WSL2
-
-That gives you the cleanest path for the current target platforms without overcommitting to native Windows packaging too early.
-
----
-
 ## Roadmap
 
 - screenshot / GIF in README
-- GitHub Releases
-- Homebrew tap
+- npm distribution via a scoped package
 - broader metadata coverage per package manager
 - native Windows support if the package-manager story is clarified
 
@@ -234,4 +240,4 @@ That gives you the cleanest path for the current target platforms without overco
 
 ## License
 
-Add your preferred license file in the repo root before publishing.
+MIT
