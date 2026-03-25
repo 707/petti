@@ -71,6 +71,7 @@ func (c PipCollector) Collect(ctx context.Context) ([]model.Package, model.Colle
 			Name:    item.Name,
 			Version: item.Version,
 			Source:  model.SourcePip,
+			UsedBy:  "N",
 		})
 	}
 	packages = c.addMetadata(ctx, cmd, packages)

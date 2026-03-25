@@ -190,6 +190,66 @@ func TestRunRejectsInvalidLayout(t *testing.T) {
 	}
 }
 
+func TestRunThemeFlag(t *testing.T) {
+	var rendered tui.Model
+	code := Run(context.Background(), []string{"--theme", "ember"}, Deps{
+		Stdout: &bytes.Buffer{},
+		Stderr: &bytes.Buffer{},
+		Refresh: func(context.Context) collectors.CollectResult {
+			return collectors.CollectResult{}
+		},
+		WriteTXT:  func(string, []model.Package) error { return nil },
+		WriteJSON: func(string, []model.Package) error { return nil },
+		RunTUI: func(model tea.Model) error {
+			rendered = model.(tui.Model)
+			return nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("Run() code = %d, want 0", code)
+	}
+	if rendered.ThemeName() != tui.ThemeEmber {
+		t.Fatalf("ThemeName() = %q, want %q", rendered.ThemeName(), tui.ThemeEmber)
+	}
+}
+
+func TestRunThemeFlagAcceptsExplicitVariant(t *testing.T) {
+	var rendered tui.Model
+	code := Run(context.Background(), []string{"--theme", "default-light"}, Deps{
+		Stdout: &bytes.Buffer{},
+		Stderr: &bytes.Buffer{},
+		Refresh: func(context.Context) collectors.CollectResult {
+			return collectors.CollectResult{}
+		},
+		WriteTXT:  func(string, []model.Package) error { return nil },
+		WriteJSON: func(string, []model.Package) error { return nil },
+		RunTUI: func(model tea.Model) error {
+			rendered = model.(tui.Model)
+			return nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("Run() code = %d, want 0", code)
+	}
+	if rendered.ThemeName() != tui.ThemeDefaultLight {
+		t.Fatalf("ThemeName() = %q, want %q", rendered.ThemeName(), tui.ThemeDefaultLight)
+	}
+}
+
+func TestRunRejectsInvalidTheme(t *testing.T) {
+	var stderr bytes.Buffer
+	code := Run(context.Background(), []string{"--theme", "nope"}, Deps{
+		Stdout: &bytes.Buffer{},
+		Stderr: &stderr,
+	})
+	if code != 2 {
+		t.Fatalf("Run() code = %d, want 2", code)
+	}
+	if !strings.Contains(stderr.String(), "default-light") || !strings.Contains(stderr.String(), "frost-light") {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+}
+
 func TestRunExportWriteError(t *testing.T) {
 	var stderr bytes.Buffer
 	code := Run(context.Background(), []string{"--export-txt", "out.txt"}, Deps{

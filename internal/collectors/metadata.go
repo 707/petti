@@ -62,6 +62,7 @@ func enrichBrewFormulae(packages []model.Package, stdout string) []model.Package
 		}
 		packages[index].Description = strings.TrimSpace(info.Desc)
 		packages[index].ActionRequired = brewActionLabel(info.Outdated, info.Deprecated, info.Disabled)
+		packages[index].UsedBy = "-"
 		if len(info.Installed) > 0 {
 			packages[index].UpdatedAt = formatUnixDate(info.Installed[len(info.Installed)-1].Time)
 		}
@@ -86,6 +87,7 @@ func enrichBrewCasks(packages []model.Package, stdout string) []model.Package {
 		}
 		packages[index].Description = strings.TrimSpace(info.Desc)
 		packages[index].ActionRequired = brewActionLabel(info.Outdated, info.Deprecated, info.Disabled)
+		packages[index].UsedBy = "-"
 		packages[index].UpdatedAt = formatUnixDate(info.InstalledTime)
 	}
 	return packages

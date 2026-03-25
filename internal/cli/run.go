@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -39,12 +40,13 @@ var (
 	}
 	defaultCollectAll = collectors.CollectAll
 	newTeaProgram     = func(model tea.Model) teaProgram {
-		return tea.NewProgram(model, tea.WithAltScreen())
+		return tea.NewProgram(model, tea.WithAltScreen(), tea.WithMouseCellMotion())
 	}
 )
 
 func Run(ctx context.Context, args []string, deps Deps) int {
 	deps = withDefaults(deps)
+	inspector := collectors.NewPackageInspector(collectors.ExecRunner{})
 
 	fs := flag.NewFlagSet("pkgview", flag.ContinueOnError)
 	fs.SetOutput(deps.Stderr)
@@ -53,6 +55,7 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 	exportJSONPath := fs.String("export-json", "", "export list to .json and exit")
 	filterValue := fs.String("filter", "", "pre-populate the filter")
 	layoutValue := fs.String("layout", string(tui.LayoutFull), "startup layout: full or compact")
+	themeValue := fs.String("theme", string(tui.ThemeDefault), "startup theme")
 	_ = fs.Bool("no-color", false, "disable colour output")
 	showVersion := fs.Bool("version", false, "show version and exit")
 
@@ -69,6 +72,14 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 	}
 	if *layoutValue != string(tui.LayoutFull) && *layoutValue != string(tui.LayoutCompact) {
 		_, _ = fmt.Fprintln(deps.Stderr, "layout must be full or compact")
+		return 2
+	}
+	if !tui.IsValidTheme(tui.ThemeName(*themeValue)) {
+		names := make([]string, 0, len(tui.ValidThemes()))
+		for _, name := range tui.ValidThemes() {
+			names = append(names, string(name))
+		}
+		_, _ = fmt.Fprintf(deps.Stderr, "theme must be one of: %s\n", strings.Join(names, ", "))
 		return 2
 	}
 
@@ -95,8 +106,10 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 		Statuses: result.Statuses,
 		Filter:   *filterValue,
 		Layout:   tui.LayoutMode(*layoutValue),
+		Theme:    tui.ThemeName(*themeValue),
 		Refresh:  deps.Refresh,
 		Export:   makeExportFunc(deps),
+		Inspect:  inspector.Inspect,
 	})
 	if err := deps.RunTUI(model); err != nil {
 		_, _ = fmt.Fprintln(deps.Stderr, err)

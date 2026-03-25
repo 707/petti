@@ -65,9 +65,9 @@ func TestBrewCollectorCollectsFormulaeAndCasks(t *testing.T) {
 	}
 
 	want := []model.Package{
-		{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew, Description: "GitHub CLI", ActionRequired: "update", UpdatedAt: "2024-01-01"},
-		{Name: "fzf", Version: "0.54.0", Source: model.SourceHomebrew, Description: "Fuzzy finder", ActionRequired: "current", UpdatedAt: "2024-02-01"},
-		{Name: "font-hack-nerd-font", Version: "3.4.0", Source: model.SourceHomebrewCask, Description: "Fonts", ActionRequired: "current", UpdatedAt: "2024-03-01"},
+		{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew, Description: "GitHub CLI", ActionRequired: "update", UpdatedAt: "2024-01-01", UsedBy: "N"},
+		{Name: "fzf", Version: "0.54.0", Source: model.SourceHomebrew, Description: "Fuzzy finder", ActionRequired: "current", UpdatedAt: "2024-02-01", UsedBy: "N"},
+		{Name: "font-hack-nerd-font", Version: "3.4.0", Source: model.SourceHomebrewCask, Description: "Fonts", ActionRequired: "current", UpdatedAt: "2024-03-01", UsedBy: "-"},
 	}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() packages = %#v, want %#v", pkgs, want)
@@ -220,7 +220,7 @@ func TestBrewCollectorKeepsFormulaeWhenCasksFail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
-	want := []model.Package{{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew}}
+	want := []model.Package{{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew, UsedBy: "N"}}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() packages = %#v, want %#v", pkgs, want)
 	}
@@ -229,6 +229,59 @@ func TestBrewCollectorKeepsFormulaeWhenCasksFail(t *testing.T) {
 	}
 	if status.Details != "cask failure" {
 		t.Fatalf("status.Details = %q, want %q", status.Details, "cask failure")
+	}
+}
+
+func TestBrewDependencySafetyIsBulkDerived(t *testing.T) {
+	packages := []model.Package{
+		{Name: "gh", Source: model.SourceHomebrew, UsedBy: "Y"},
+		{Name: "fzf", Source: model.SourceHomebrew, UsedBy: "Y"},
+		{Name: "dep", Source: model.SourceHomebrew, UsedBy: "Y"},
+		{Name: "font-hack-nerd-font", Source: model.SourceHomebrewCask, UsedBy: "Y"},
+	}
+	leaves := map[string]struct{}{
+		"gh":  {},
+		"fzf": {},
+	}
+
+	got := applyBrewDependencySafety(append([]model.Package(nil), packages...), leaves)
+	if got[0].UsedBy != "N" {
+		t.Fatalf("gh UsedBy = %q, want N", got[0].UsedBy)
+	}
+	if got[1].UsedBy != "N" {
+		t.Fatalf("fzf UsedBy = %q, want N", got[1].UsedBy)
+	}
+	if got[2].UsedBy != "Y" {
+		t.Fatalf("dep UsedBy = %q, want Y", got[2].UsedBy)
+	}
+	if got[3].UsedBy != "-" {
+		t.Fatalf("cask UsedBy = %q, want -", got[3].UsedBy)
+	}
+}
+
+func TestBrewCollectorRetainsDependencyInstalledFormulae(t *testing.T) {
+	runner := stubRunner{
+		results: map[string]Result{
+			"brew leaves --installed-on-request": {Stdout: "gh"},
+			"brew list --versions":               {Stdout: "gh 2.47.0\ndep 1.0.0"},
+			"brew info --json=v2 gh dep": {Stdout: `{"formulae":[
+				{"name":"gh","desc":"GitHub CLI","outdated":false,"installed":[{"time":1704067200}]},
+				{"name":"dep","desc":"Dependency package","outdated":false,"installed":[{"time":1704067200}]}
+			],"casks":[]}`},
+			"brew list --cask --versions": {Stdout: ""},
+		},
+	}
+
+	pkgs, _, err := NewBrewCollector(runner).Collect(context.Background())
+	if err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	want := []model.Package{
+		{Name: "gh", Version: "2.47.0", Source: model.SourceHomebrew, Description: "GitHub CLI", ActionRequired: "current", UpdatedAt: "2024-01-01", UsedBy: "N"},
+		{Name: "dep", Version: "1.0.0", Source: model.SourceHomebrew, Description: "Dependency package", ActionRequired: "current", UpdatedAt: "2024-01-01", UsedBy: "Y"},
+	}
+	if !reflect.DeepEqual(pkgs, want) {
+		t.Fatalf("Collect() packages = %#v, want %#v", pkgs, want)
 	}
 }
 
@@ -246,15 +299,88 @@ func TestNPMCollectorStripsNPM(t *testing.T) {
 	runner := stubRunner{
 		results: map[string]Result{
 			"npm list -g --depth=0 --json -l": {Stdout: `{"dependencies":{"npm":{"version":"10.0.0"},"typescript":{"version":"5.4.3","description":"TypeScript language","path":"` + packageDir + `"}}}`},
+			"npm ls -g --all --json":          {Stdout: `{"dependencies":{"typescript":{"version":"5.4.3"}}}`},
 		},
 	}
 	pkgs, _, err := NewNPMCollector(runner).Collect(context.Background())
 	if err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
-	want := []model.Package{{Name: "typescript", Version: "5.4.3", Source: model.SourceNPM, Description: "TypeScript language", UpdatedAt: "2024-07-04"}}
+	want := []model.Package{{Name: "typescript", Version: "5.4.3", Source: model.SourceNPM, Description: "TypeScript language", UpdatedAt: "2024-07-04", UsedBy: "N"}}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() = %#v, want %#v", pkgs, want)
+	}
+}
+
+func TestNPMCollectorMarksDependencyUnsafeWhenNestedUnderAnotherPackage(t *testing.T) {
+	runner := stubRunner{
+		results: map[string]Result{
+			"npm list -g --depth=0 --json -l": {Stdout: `{"dependencies":{"npm":{"version":"10.0.0"},"typescript":{"version":"5.4.3","description":"TypeScript language","path":"/tmp/typescript"},"eslint":{"version":"9.0.0","description":"Linter","path":"/tmp/eslint"}}}`},
+			"npm ls -g --all --json":          {Stdout: `{"dependencies":{"typescript":{"version":"5.4.3"},"eslint":{"version":"9.0.0","dependencies":{"typescript":{"version":"5.4.3"}}}}}`},
+		},
+	}
+	pkgs, _, err := NewNPMCollector(runner).Collect(context.Background())
+	if err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	for _, pkg := range pkgs {
+		if pkg.Name == "typescript" && pkg.UsedBy != "Y" {
+			t.Fatalf("typescript UsedBy = %q, want Y", pkg.UsedBy)
+		}
+		if pkg.Name == "eslint" && pkg.UsedBy != "N" {
+			t.Fatalf("eslint UsedBy = %q, want N", pkg.UsedBy)
+		}
+	}
+}
+
+func TestNPMDependencySafetyHelpers(t *testing.T) {
+	base := []model.Package{
+		{Name: "typescript", Source: model.SourceNPM, UsedBy: "-"},
+		{Name: "eslint", Source: model.SourceNPM, UsedBy: "-"},
+	}
+	got := markNPMDependencySafety(append([]model.Package(nil), base...), `{"dependencies":{"typescript":{"version":"5.4.3"},"eslint":{"version":"9.0.0","dependencies":{"typescript":{"version":"5.4.3"}}}}}`)
+	if got[0].UsedBy != "Y" {
+		t.Fatalf("typescript UsedBy = %q, want Y", got[0].UsedBy)
+	}
+	if got[1].UsedBy != "N" {
+		t.Fatalf("eslint UsedBy = %q, want N", got[1].UsedBy)
+	}
+
+	unchanged := markNPMDependencySafety(append([]model.Package(nil), base...), "{bad json")
+	if !reflect.DeepEqual(unchanged, base) {
+		t.Fatalf("markNPMDependencySafety(invalid) = %#v, want unchanged", unchanged)
+	}
+
+	runner := stubRunner{
+		errs: map[string]error{
+			"npm ls -g --all --json": context.DeadlineExceeded,
+		},
+	}
+	got = NewNPMCollector(runner).applyDependencySafety(context.Background(), append([]model.Package(nil), base...))
+	if !reflect.DeepEqual(got, base) {
+		t.Fatalf("applyDependencySafety(err) = %#v, want unchanged", got)
+	}
+
+	exitRunner := stubRunner{
+		results: map[string]Result{
+			"npm ls -g --all --json": {ExitCode: 1},
+		},
+	}
+	got = NewNPMCollector(exitRunner).applyDependencySafety(context.Background(), append([]model.Package(nil), base...))
+	if !reflect.DeepEqual(got, base) {
+		t.Fatalf("applyDependencySafety(exit) = %#v, want unchanged", got)
+	}
+
+	got = NewNPMCollector(stubRunner{}).applyDependencySafety(context.Background(), nil)
+	if got != nil {
+		t.Fatalf("applyDependencySafety(nil) = %#v, want nil", got)
+	}
+
+	unchanged = markNPMDependencySafety(append([]model.Package(nil), base...), `{"name":"root"}`)
+	for _, pkg := range unchanged {
+		if pkg.UsedBy != "N" {
+			t.Fatalf("markNPMDependencySafety(no deps) UsedBy = %q, want N", pkg.UsedBy)
+		}
 	}
 }
 
@@ -336,7 +462,7 @@ func TestPipCollectorFallsBackToPip3(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Collect() error = %v", err)
 	}
-	want := []model.Package{{Name: "ruff", Version: "0.3.4", Source: model.SourcePip, Description: "Fast Python linter", UpdatedAt: "2024-08-05"}}
+	want := []model.Package{{Name: "ruff", Version: "0.3.4", Source: model.SourcePip, Description: "Fast Python linter", UpdatedAt: "2024-08-05", UsedBy: "N"}}
 	if !reflect.DeepEqual(pkgs, want) {
 		t.Fatalf("Collect() = %#v, want %#v", pkgs, want)
 	}
@@ -372,6 +498,9 @@ func TestMetadataHelpers(t *testing.T) {
 
 	if got := formatFileDate(filepath.Join(t.TempDir(), "missing")); got != "" {
 		t.Fatalf("formatFileDate(missing) = %q, want empty", got)
+	}
+	if got := joinDetails("", " one ", "", "two"); got != "one; two" {
+		t.Fatalf("joinDetails() = %q, want %q", got, "one; two")
 	}
 
 	pkgs := []model.Package{{Name: "gh", Source: model.SourceHomebrew}}

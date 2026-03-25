@@ -57,23 +57,6 @@ func (c BrewCollector) Collect(ctx context.Context) ([]model.Package, model.Coll
 }
 
 func (c BrewCollector) collectFormulae(ctx context.Context) ([]model.Package, model.CollectorStatus, error) {
-	result, err := c.runner.Run(ctx, "brew", "leaves", "--installed-on-request")
-	if err != nil {
-		return nil, timeoutStatus(model.SourceHomebrew, "homebrew", err), err
-	}
-	if result.ExitCode != 0 {
-		return nil, exitStatus(model.SourceHomebrew, "homebrew", result), fmt.Errorf("brew leaves failed")
-	}
-
-	var packages []model.Package
-	for _, line := range strings.Split(result.Stdout, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		packages = append(packages, model.Package{Name: line, Source: model.SourceHomebrew})
-	}
-
 	versionResult, err := c.runner.Run(ctx, "brew", "list", "--versions")
 	if err != nil {
 		return nil, timeoutStatus(model.SourceHomebrew, "homebrew", err), err
@@ -82,11 +65,26 @@ func (c BrewCollector) collectFormulae(ctx context.Context) ([]model.Package, mo
 		return nil, exitStatus(model.SourceHomebrew, "homebrew", versionResult), fmt.Errorf("brew list --versions failed")
 	}
 
-	versions := parseVersionLines(versionResult.Stdout)
-	for i := range packages {
-		packages[i].Version = versions[packages[i].Name]
+	packages := parseVersionPackages(versionResult.Stdout, model.SourceHomebrew)
+
+	result, err := c.runner.Run(ctx, "brew", "leaves", "--installed-on-request")
+	if err != nil {
+		return nil, timeoutStatus(model.SourceHomebrew, "homebrew", err), err
+	}
+	if result.ExitCode != 0 {
+		return nil, exitStatus(model.SourceHomebrew, "homebrew", result), fmt.Errorf("brew leaves failed")
+	}
+
+	leaves := map[string]struct{}{}
+	for _, line := range strings.Split(result.Stdout, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		leaves[line] = struct{}{}
 	}
 	packages = c.addFormulaMetadata(ctx, packages)
+	packages = applyBrewDependencySafety(packages, leaves)
 
 	return packages, model.CollectorStatus{
 		Source: model.SourceHomebrew,
@@ -104,12 +102,9 @@ func (c BrewCollector) collectCasks(ctx context.Context) ([]model.Package, model
 		return nil, exitStatus(model.SourceHomebrewCask, "homebrew-cask", result), fmt.Errorf("brew list --cask --versions failed")
 	}
 
-	versions := parseVersionLines(result.Stdout)
-	packages := make([]model.Package, 0, len(versions))
-	for name, version := range versions {
-		packages = append(packages, model.Package{Name: name, Version: version, Source: model.SourceHomebrewCask})
-	}
+	packages := parseVersionPackages(result.Stdout, model.SourceHomebrewCask)
 	packages = c.addCaskMetadata(ctx, packages)
+	packages = applyBrewDependencySafety(packages, nil)
 	return packages, model.CollectorStatus{
 		Source: model.SourceHomebrewCask,
 		Label:  "homebrew-cask",
@@ -149,6 +144,21 @@ func (c BrewCollector) addCaskMetadata(ctx context.Context, packages []model.Pac
 	return enrichBrewCasks(packages, result.Stdout)
 }
 
+func applyBrewDependencySafety(packages []model.Package, leaves map[string]struct{}) []model.Package {
+	for index := range packages {
+		if packages[index].Source == model.SourceHomebrewCask {
+			packages[index].UsedBy = "-"
+			continue
+		}
+		if _, ok := leaves[packages[index].Name]; ok {
+			packages[index].UsedBy = "N"
+			continue
+		}
+		packages[index].UsedBy = "Y"
+	}
+	return packages
+}
+
 func parseVersionLines(input string) map[string]string {
 	versions := map[string]string{}
 	for _, line := range strings.Split(input, "\n") {
@@ -159,6 +169,22 @@ func parseVersionLines(input string) map[string]string {
 		versions[fields[0]] = strings.Join(fields[1:], " ")
 	}
 	return versions
+}
+
+func parseVersionPackages(input string, source model.Source) []model.Package {
+	packages := []model.Package{}
+	for _, line := range strings.Split(input, "\n") {
+		fields := strings.Fields(strings.TrimSpace(line))
+		if len(fields) < 2 {
+			continue
+		}
+		packages = append(packages, model.Package{
+			Name:    fields[0],
+			Version: strings.Join(fields[1:], " "),
+			Source:  source,
+		})
+	}
+	return packages
 }
 
 func timeoutStatus(source model.Source, label string, err error) model.CollectorStatus {

@@ -19,6 +19,16 @@ type Package struct {
 	ActionRequired string `json:"action_required,omitempty"`
 	UpdatedAt      string `json:"updated_at,omitempty"`
 	LastUsed       string `json:"last_used,omitempty"`
+	UsedBy         string `json:"used_by,omitempty"`
+}
+
+type PackageDetails struct {
+	Homepage     string   `json:"homepage,omitempty"`
+	Repository   string   `json:"repository,omitempty"`
+	Location     string   `json:"location,omitempty"`
+	Size         string   `json:"size,omitempty"`
+	Dependencies []string `json:"dependencies,omitempty"`
+	Dependents   []string `json:"dependents,omitempty"`
 }
 
 func (p Package) Key() string {

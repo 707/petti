@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/nad/pkgview/internal/model"
 )
@@ -43,10 +44,10 @@ func (c NPMCollector) Collect(ctx context.Context) ([]model.Package, model.Colle
 	if result.ExitCode != 0 {
 		return nil, exitStatus(model.SourceNPM, "npm", result), fmt.Errorf("npm list failed")
 	}
-	return c.collectDetailed(result.Stdout)
+	return c.collectDetailed(ctx, result.Stdout)
 }
 
-func (c NPMCollector) collectDetailed(stdout string) ([]model.Package, model.CollectorStatus, error) {
+func (c NPMCollector) collectDetailed(ctx context.Context, stdout string) ([]model.Package, model.CollectorStatus, error) {
 	type dependency struct {
 		Version     string `json:"version"`
 		Description string `json:"description"`
@@ -84,12 +85,66 @@ func (c NPMCollector) collectDetailed(stdout string) ([]model.Package, model.Col
 			Source:      model.SourceNPM,
 			Description: dependency.Description,
 			UpdatedAt:   formatFileDate(dependency.Path),
+			UsedBy:      "-",
 		})
 	}
+	packages = c.applyDependencySafety(ctx, packages)
 
 	return packages, model.CollectorStatus{
 		Source: model.SourceNPM,
 		Label:  "npm",
 		State:  model.CollectorStateReady,
 	}, nil
+}
+
+func (c NPMCollector) applyDependencySafety(ctx context.Context, packages []model.Package) []model.Package {
+	if len(packages) == 0 {
+		return packages
+	}
+	result, err := c.runner.Run(ctx, "npm", "ls", "-g", "--all", "--json")
+	if err != nil || result.ExitCode != 0 {
+		return packages
+	}
+	return markNPMDependencySafety(packages, result.Stdout)
+}
+
+func markNPMDependencySafety(packages []model.Package, stdout string) []model.Package {
+	type npmTreeNode struct {
+		Dependencies map[string]npmTreeNode `json:"dependencies"`
+	}
+
+	var root npmTreeNode
+	if err := json.Unmarshal([]byte(stdout), &root); err != nil {
+		return packages
+	}
+
+	topLevel := make(map[string]struct{}, len(packages))
+	usedByOther := make(map[string]bool, len(packages))
+	for _, pkg := range packages {
+		topLevel[strings.ToLower(pkg.Name)] = struct{}{}
+	}
+
+	var visit func(owner string, node npmTreeNode)
+	visit = func(owner string, node npmTreeNode) {
+		for name, child := range node.Dependencies {
+			lower := strings.ToLower(name)
+			if _, ok := topLevel[lower]; ok && lower != owner {
+				usedByOther[lower] = true
+			}
+			visit(owner, child)
+		}
+	}
+
+	for name, child := range root.Dependencies {
+		visit(strings.ToLower(name), child)
+	}
+
+	for index := range packages {
+		if usedByOther[strings.ToLower(packages[index].Name)] {
+			packages[index].UsedBy = "Y"
+		} else {
+			packages[index].UsedBy = "N"
+		}
+	}
+	return packages
 }

@@ -33,3 +33,9 @@ If a required change is materially different from the current plan, pause and fl
 1. Visual polish on the full-layout dense grid, popup styling, header treatment, selected-row emphasis, and detail pane.
 2. Optional real-binary integration tests for package managers on CI.
 3. Optional read-only jobs/history and snapshot diffing.
+
+## Completed slices (continued)
+
+14. Grid column refactoring: removed `used` column, renamed `action`→`status` and moved after `desc`, src column no longer truncates, updated column shows relative time ("4d ago"), box-drawing gridlines (┌┐└┘│─).
+15. Full-layout grid/theme/deletion-plan slice: moved `LAST UPDATED` to the right of `DESC` with a 4-char two-line header, made `VER` half-width, added `USED BY`, added 3 named themes via `--theme`, colored full-layout chrome through centralized theme helpers, and added `d` to copy uninstall commands to the clipboard with status feedback.
+16. Full-layout chrome/dependency-safety/info slice: removed the stray separator above filter boxes, made `?` visibly toggle full-layout help, renamed the dependency column to `DEPENDANCY` with `Y/N/-` semantics, added manager-specific package inspection, added the centered `i` info modal with live metadata, enabled runtime mouse support for row selection and modal toggling, and kept `make test`, `make cover-check`, and `make build` green at 100% statement coverage.
