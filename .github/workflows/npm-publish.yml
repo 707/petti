@@ -1,0 +1,37 @@
+name: npm publish
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    if: ${{ secrets.NPM_TOKEN != '' && startsWith(github.event.release.tag_name, 'v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify package version matches release tag
+        run: |
+          node -e "const pkg=require('./package.json'); const tag=process.env.RELEASE_TAG; if ('v' + pkg.version !== tag) { throw new Error(`package.json version ${pkg.version} does not match ${tag}`); }"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Test package wrapper
+        run: npm test
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

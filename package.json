@@ -1,0 +1,37 @@
+{
+  "name": "petti",
+  "version": "0.6.3",
+  "description": "Terminal UI for browsing installed packages across package managers",
+  "license": "MIT",
+  "homepage": "https://github.com/707/petti",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/707/petti.git"
+  },
+  "bugs": {
+    "url": "https://github.com/707/petti/issues"
+  },
+  "bin": {
+    "petti": "npm/bin/petti.js"
+  },
+  "files": [
+    "npm/bin",
+    "npm/lib",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test npm/test/*.test.js && sh scripts/install_test.sh"
+  },
+  "keywords": [
+    "cli",
+    "tui",
+    "packages",
+    "homebrew",
+    "npm",
+    "pip"
+  ]
+}

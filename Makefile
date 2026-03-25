@@ -7,6 +7,7 @@ VERSION ?= dev
 
 test:
 	$(GOENV) go test ./...
+	npm test
 
 test-cover:
 	$(GOENV) go test -cover ./...
