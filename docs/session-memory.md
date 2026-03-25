@@ -4,7 +4,7 @@
 
 - Repo bootstrapped as a Go module for a Bubble Tea implementation.
 - Core v1 implementation now exists across collectors, UI state, Bubble Tea TUI, CLI orchestration, and binary entrypoint.
-- `internal/model`, `internal/collectors`, `internal/app`, `internal/export`, `internal/tui`, `internal/cli`, and `cmd/pkgview` are all at 100% statement coverage with passing tests.
+- `internal/model`, `internal/collectors`, `internal/app`, `internal/export`, `internal/tui`, `internal/cli`, and `cmd/petti` are all at 100% statement coverage with passing tests.
 - Repo tooling now includes a `Makefile`, CI workflow, and coverage gate script.
 - `v0.5` has been committed as the baseline snapshot.
 - The next UI iteration has started:
@@ -35,7 +35,7 @@
 - Include Homebrew casks by default.
 - Treat development continuity as checked-in docs plus Git history, not end-user persisted UI state.
 - `llmfit` is inspiration for layout and navigation patterns, not a library choice.
-- The `llmfit`-style feel in `pkgview` should come from custom-rendered Bubble Tea chrome and a viewport-backed grid, not from migrating frameworks.
+- The `llmfit`-style feel in `petti` should come from custom-rendered Bubble Tea chrome and a viewport-backed grid, not from migrating frameworks.
 - Strict engineering rule: show red first, then minimal green, then refactor.
 - Strict quality rule: maintain 100% passing status and 100% code coverage for every package changed in the active slice.
 - Escalation rule: if implementation requires a major behavior or architecture change from the agreed plan, stop and flag it to the user before proceeding.

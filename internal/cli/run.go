@@ -9,11 +9,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/nad/pkgview/internal/app"
-	"github.com/nad/pkgview/internal/collectors"
-	exports "github.com/nad/pkgview/internal/export"
-	"github.com/nad/pkgview/internal/model"
-	"github.com/nad/pkgview/internal/tui"
+	"github.com/707/petti/internal/app"
+	"github.com/707/petti/internal/collectors"
+	exports "github.com/707/petti/internal/export"
+	"github.com/707/petti/internal/model"
+	"github.com/707/petti/internal/tui"
 )
 
 type Deps struct {
@@ -48,7 +48,7 @@ func Run(ctx context.Context, args []string, deps Deps) int {
 	deps = withDefaults(deps)
 	inspector := collectors.NewPackageInspector(collectors.ExecRunner{})
 
-	fs := flag.NewFlagSet("pkgview", flag.ContinueOnError)
+	fs := flag.NewFlagSet("petti", flag.ContinueOnError)
 	fs.SetOutput(deps.Stderr)
 
 	exportTXTPath := fs.String("export-txt", "", "export list to .txt and exit")
@@ -159,10 +159,10 @@ func makeExportFunc(deps Deps) tui.ExportFunc {
 	return func(format tui.ExportFormat, packages []model.Package) (string, error) {
 		switch format {
 		case tui.ExportJSON:
-			path := "pkgview-export.json"
+			path := "petti-export.json"
 			return path, deps.WriteJSON(path, packages)
 		default:
-			path := "pkgview-export.txt"
+			path := "petti-export.txt"
 			return path, deps.WriteTXT(path, packages)
 		}
 	}

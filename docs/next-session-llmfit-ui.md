@@ -26,7 +26,7 @@ This is not a framework migration task. `llmfit` itself is not Bubble Tea-based;
 
 ### Row 1: System/status bar
 
-- Left: `pkgview`, version, active mode
+- Left: `petti`, version, active mode
 - Center: package totals and per-source counts
 - Right: collector availability/error summary
 

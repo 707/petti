@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 var ErrUnavailable = errors.New("collector unavailable")

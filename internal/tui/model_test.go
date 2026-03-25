@@ -11,9 +11,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/nad/pkgview/internal/app"
-	"github.com/nad/pkgview/internal/collectors"
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/app"
+	"github.com/707/petti/internal/collectors"
+	"github.com/707/petti/internal/model"
 )
 
 func TestNewAppliesInitialFilter(t *testing.T) {
@@ -123,7 +123,7 @@ func TestRenderFullChromeHelpers(t *testing.T) {
 	})
 	m.state.Width = 100
 	top := m.renderTopBar()
-	if !strings.Contains(top, "pkgview") || !strings.Contains(top, "Managers") || !strings.Contains(top, "1 packages") || !strings.Contains(top, "NORMAL") {
+	if !strings.Contains(top, "petti") || !strings.Contains(top, "Managers") || !strings.Contains(top, "1 packages") || !strings.Contains(top, "NORMAL") {
 		t.Fatalf("renderTopBar() = %q", top)
 	}
 
@@ -421,7 +421,7 @@ func TestUpdateExportsVisiblePackages(t *testing.T) {
 			for _, pkg := range packages {
 				gotNames = append(gotNames, pkg.Name)
 			}
-			return "pkgview-export.txt", nil
+			return "petti-export.txt", nil
 		},
 	})
 
@@ -443,7 +443,7 @@ func TestUpdateExportsVisiblePackages(t *testing.T) {
 	if len(gotNames) != 1 || gotNames[0] != "gh" {
 		t.Fatalf("exported names = %#v, want [gh]", gotNames)
 	}
-	if !strings.Contains(m.statusMessage, "pkgview-export.txt") {
+	if !strings.Contains(m.statusMessage, "petti-export.txt") {
 		t.Fatalf("statusMessage = %q, want export path", m.statusMessage)
 	}
 }
@@ -454,7 +454,7 @@ func TestNewProvidesDefaultRefreshAndExport(t *testing.T) {
 		Statuses: []model.CollectorStatus{{Source: model.SourceHomebrew, State: model.CollectorStateReady}},
 	})
 	t.Cleanup(func() {
-		_ = os.Remove("pkgview-export.txt")
+		_ = os.Remove("petti-export.txt")
 	})
 	result := m.refresh(context.Background())
 	if len(result.Packages) != 1 || result.Packages[0].Name != "gh" {

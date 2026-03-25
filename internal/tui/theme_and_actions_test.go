@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func TestGridColumnsFollowNewOrderAndSizing(t *testing.T) {

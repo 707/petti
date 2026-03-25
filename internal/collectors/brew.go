@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 type BrewCollector struct {

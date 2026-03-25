@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/nad/pkgview/internal/cli"
+	"github.com/707/petti/internal/cli"
 )
 
 func TestRealMain(t *testing.T) {
@@ -48,7 +48,7 @@ func TestMain(t *testing.T) {
 		runCLI = originalRun
 	})
 
-	osArgs = []string{"pkgview", "--version"}
+	osArgs = []string{"petti", "--version"}
 	runCLI = func(context.Context, []string, cli.Deps) int { return 3 }
 
 	var gotExit int

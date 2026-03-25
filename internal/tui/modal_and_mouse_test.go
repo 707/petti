@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func TestUpdateInfoModalOpensAndCloses(t *testing.T) {

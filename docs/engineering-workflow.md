@@ -1,6 +1,6 @@
 # Engineering Workflow
 
-This document is the persistent implementation contract for `pkgview`.
+This document is the persistent implementation contract for `petti`.
 
 ## Mandatory development process
 

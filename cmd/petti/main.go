@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/nad/pkgview/internal/cli"
+	"github.com/707/petti/internal/cli"
 )
 
 var (

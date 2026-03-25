@@ -15,7 +15,7 @@ cover-check:
 	$(GOENV) ./scripts/check-coverage.sh
 
 build:
-	$(GOENV) go build ./cmd/pkgview
+	$(GOENV) go build ./cmd/petti
 
 build-release:
-	$(GOENV) go build -ldflags "-X main.version=$(VERSION)" -o pkgview ./cmd/pkgview
+	$(GOENV) go build -ldflags "-X main.version=$(VERSION)" -o petti ./cmd/petti

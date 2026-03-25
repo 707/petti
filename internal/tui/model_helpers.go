@@ -9,9 +9,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/nad/pkgview/internal/app"
-	exports "github.com/nad/pkgview/internal/export"
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/app"
+	exports "github.com/707/petti/internal/export"
+	"github.com/707/petti/internal/model"
 )
 
 func (m *Model) resizeGrid() {
@@ -418,10 +418,10 @@ func exportCmd(export ExportFunc, format ExportFormat, packages []model.Package)
 func defaultExportFunc(format ExportFormat, packages []model.Package) (string, error) {
 	switch format {
 	case ExportJSON:
-		path := filepath.Clean("pkgview-export.json")
+		path := filepath.Clean("petti-export.json")
 		return path, exports.WriteJSON(path, packages)
 	default:
-		path := filepath.Clean("pkgview-export.txt")
+		path := filepath.Clean("petti-export.txt")
 		return path, exports.WriteTXT(path, packages)
 	}
 }

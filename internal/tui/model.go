@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/nad/pkgview/internal/app"
-	"github.com/nad/pkgview/internal/collectors"
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/app"
+	"github.com/707/petti/internal/collectors"
+	"github.com/707/petti/internal/model"
 )
 
 type ExportFormat string

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 type NPMCollector struct {

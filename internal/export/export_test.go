@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func TestTXT(t *testing.T) {

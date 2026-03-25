@@ -1,4 +1,4 @@
-# pkgview — PRD & Technical Specification
+# petti — PRD & Technical Specification
 
 > A 2026 TUI for Consolidated Package Inventory on macOS
 
@@ -30,7 +30,7 @@
 
 ## 1. Overview
 
-`pkgview` is a zero-dependency, read-only terminal UI that aggregates and displays explicitly user-installed CLI packages across Homebrew, npm (global), and pip in a single, navigable interface. No new package managers. No background daemons. No internet required.
+`petti` is a zero-dependency, read-only terminal UI that aggregates and displays explicitly user-installed CLI packages across Homebrew, npm (global), and pip in a single, navigable interface. No new package managers. No background daemons. No internet required.
 
 ---
 
@@ -123,7 +123,7 @@ There is no lightweight, purpose-built TUI for this exact workflow.
 
 ```
 +---------------------------------------------------------------------+
-|  pkgview  v1.0                               [?] help  [q] quit     |
+|  petti    v1.0                               [?] help  [q] quit     |
 +---------------------------------------------------------------------+
 |  Filter: > _                                                         |
 +--------------------------+--------------+---------------------------+
@@ -183,19 +183,19 @@ Pressing `?` displays a modal overlay with the full key reference and a one-line
 
 ### 7.1 Technology Choice
 
-`pkgview` is implemented as a single Python script using only the Python standard library plus one well-established TUI library:
+`petti` is implemented as a single Python script using only the Python standard library plus one well-established TUI library:
 
 | Component | Choice | Rationale |
 |---|---|---|
 | Language | Python 3.10+ | Available by default on macOS; no install needed for users |
 | TUI framework | `textual` (PyPI) | Best-in-class 2026 Python TUI; CSS-like styling, reactive |
-| Packaging | `pipx install pkgview` | Isolated install, exposes binary to PATH, one command |
+| Packaging | `pipx install petti` | Isolated install, exposes binary to PATH, one command |
 | Distribution | PyPI | Standard; no homebrew tap needed in v1 |
 
 ### 7.2 Architecture
 
 ```
-pkgview/
+petti/
   collectors/
     homebrew.py     # runs brew leaves + brew list --cask
     npm.py          # runs npm list -g --depth=0
@@ -295,7 +295,7 @@ JSON export schema:
 ## 9. CLI Interface
 
 ```
-Usage: pkgview [OPTIONS]
+Usage: petti [OPTIONS]
 
 Options:
   --export-txt PATH    Export list to .txt and exit (no TUI)
@@ -306,7 +306,7 @@ Options:
   --help               Show this message and exit
 ```
 
-The `--export-*` flags allow `pkgview` to be used non-interactively in scripts, preserving the original one-liner use case.
+The `--export-*` flags allow `petti` to be used non-interactively in scripts, preserving the original one-liner use case.
 
 ---
 
@@ -316,7 +316,7 @@ The `--export-*` flags allow `pkgview` to be used non-interactively in scripts, 
 |---|---|
 | Package manager not on PATH | Source silently omitted; status bar shows "homebrew: not found" |
 | Command times out (>15s) | Source row shows warning; other sources still display |
-| Command returns non-zero exit | Source row shows error; stderr logged to ~/.pkgview.log |
+| Command returns non-zero exit | Source row shows error; stderr logged to ~/.petti.log |
 | Terminal too small (<80x24) | Show warning: "Terminal too small — resize to at least 80x24" |
 | Python < 3.10 | Graceful exit with version error message |
 
@@ -350,4 +350,4 @@ The `--export-*` flags allow `pkgview` to be used non-interactively in scripts, 
 
 ---
 
-*pkgview — read your stack, don't manage it.*
+*petti — read your stack, don't manage it.*

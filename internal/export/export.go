@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 var marshalJSON = JSON

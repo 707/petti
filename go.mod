@@ -1,4 +1,4 @@
-module github.com/nad/pkgview
+module github.com/707/petti
 
 go 1.25.3
 

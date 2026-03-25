@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func TestPackageInspectorInspectBrew(t *testing.T) {

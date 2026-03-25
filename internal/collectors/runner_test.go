@@ -10,7 +10,7 @@ func TestExecRunnerLookPath(t *testing.T) {
 	runner := ExecRunner{}
 	path, err := runner.LookPath("sh")
 	if runtime.GOOS == "windows" {
-		t.Skip("pkgview v1 does not target windows")
+		t.Skip("petti v1 does not target windows")
 	}
 	if err != nil {
 		t.Fatalf("LookPath() error = %v", err)
@@ -22,7 +22,7 @@ func TestExecRunnerLookPath(t *testing.T) {
 
 func TestExecRunnerRunSuccess(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("pkgview v1 does not target windows")
+		t.Skip("petti v1 does not target windows")
 	}
 	result, err := ExecRunner{}.Run(context.Background(), "sh", "-c", "printf 'ok\\n'")
 	if err != nil {
@@ -35,7 +35,7 @@ func TestExecRunnerRunSuccess(t *testing.T) {
 
 func TestExecRunnerRunExitError(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("pkgview v1 does not target windows")
+		t.Skip("petti v1 does not target windows")
 	}
 	result, err := ExecRunner{}.Run(context.Background(), "sh", "-c", "printf 'boom' >&2; exit 7")
 	if err != nil {

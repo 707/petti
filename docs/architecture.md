@@ -1,6 +1,6 @@
 # Architecture
 
-`pkgview` is a read-only Go CLI/TUI that aggregates package inventory from Homebrew, npm, and pip.
+`petti` is a read-only Go CLI/TUI that aggregates package inventory from Homebrew, npm, and pip.
 
 ## Components
 

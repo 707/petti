@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 type stubRunner struct {

@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/nad/pkgview/internal/app"
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/app"
+	"github.com/707/petti/internal/model"
 )
 
 func (m Model) activeSourceLabel() string {

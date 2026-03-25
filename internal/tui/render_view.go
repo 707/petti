@@ -7,11 +7,11 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func (m Model) renderCompactView() string {
-	header := m.titleStyle().Render("pkgview")
+	header := m.titleStyle().Render("petti")
 	filterLine := "Filter: " + m.filter.View()
 
 	body := m.table.View()
@@ -98,7 +98,7 @@ func (m Model) renderFooter() string {
 }
 
 func (m Model) renderTopBar() string {
-	title := m.titleStyle().Render("pkgview")
+	title := m.titleStyle().Render("petti")
 	counts := m.state.SummaryCounts()
 	center := fmt.Sprintf(
 		"%s | %d packages | brew %d | casks %d | npm %d | pip %d",

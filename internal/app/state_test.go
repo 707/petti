@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nad/pkgview/internal/model"
+	"github.com/707/petti/internal/model"
 )
 
 func TestVisiblePackagesFilterAndSortBySource(t *testing.T) {

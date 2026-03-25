@@ -9,9 +9,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/nad/pkgview/internal/collectors"
-	"github.com/nad/pkgview/internal/model"
-	"github.com/nad/pkgview/internal/tui"
+	"github.com/707/petti/internal/collectors"
+	"github.com/707/petti/internal/model"
+	"github.com/707/petti/internal/tui"
 )
 
 func TestRunVersion(t *testing.T) {
@@ -311,13 +311,13 @@ func TestWithDefaultsAndMakeExportFunc(t *testing.T) {
 
 	exportFunc := makeExportFunc(Deps{
 		WriteTXT: func(path string, pkgs []model.Package) error {
-			if path != "pkgview-export.txt" || len(pkgs) != 1 {
+			if path != "petti-export.txt" || len(pkgs) != 1 {
 				t.Fatalf("txt path/packages = %q/%d", path, len(pkgs))
 			}
 			return nil
 		},
 		WriteJSON: func(path string, pkgs []model.Package) error {
-			if path != "pkgview-export.json" || len(pkgs) != 1 {
+			if path != "petti-export.json" || len(pkgs) != 1 {
 				t.Fatalf("json path/packages = %q/%d", path, len(pkgs))
 			}
 			return nil

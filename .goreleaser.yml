@@ -1,15 +1,15 @@
 version: 2
 
-project_name: pkgview
+project_name: petti
 
 before:
   hooks:
     - go test ./...
 
 builds:
-  - id: pkgview
-    main: ./cmd/pkgview/main.go
-    binary: pkgview
+  - id: petti
+    main: ./cmd/petti/main.go
+    binary: petti
     env:
       - CGO_ENABLED=0
     goos:

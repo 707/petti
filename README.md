@@ -1,4 +1,4 @@
-# pkgview
+# petti
 
 <p align="center">
   <b>One terminal view for the packages you actually have installed.</b>
@@ -18,21 +18,21 @@
 
 ```sh
 git clone <your-repo-url>
-cd pkgview
-go build -o pkgview ./cmd/pkgview
+cd petti
+go build -o petti ./cmd/petti
 ```
 
 ### Local development binary
 
 ```sh
-go build -o pkgview ./cmd/pkgview
-./pkgview
+go build -o petti ./cmd/petti
+./petti
 ```
 
 ### Run without building
 
 ```sh
-go run ./cmd/pkgview
+go run ./cmd/petti
 ```
 
 ---
@@ -42,7 +42,7 @@ go run ./cmd/pkgview
 ### TUI (default)
 
 ```sh
-./pkgview
+./petti
 ```
 
 The app detects packages from supported managers, shows them in a dense terminal grid, and lets you filter, inspect, sort, export, and review uninstall commands without changing your system.
@@ -50,16 +50,16 @@ The app detects packages from supported managers, shows them in a dense terminal
 ### Useful startup flags
 
 ```sh
-./pkgview --layout full
-./pkgview --layout compact
-./pkgview --theme default
-./pkgview --theme default-light
-./pkgview --theme ember-dark
-./pkgview --theme frost-light
-./pkgview --filter gh
-./pkgview --version
-./pkgview --export-txt packages.txt
-./pkgview --export-json packages.json
+./petti --layout full
+./petti --layout compact
+./petti --theme default
+./petti --theme default-light
+./petti --theme ember-dark
+./petti --theme frost-light
+./petti --filter gh
+./petti --version
+./petti --export-txt packages.txt
+./petti --export-json packages.json
 ```
 
 ---
@@ -95,7 +95,7 @@ The app detects packages from supported managers, shows them in a dense terminal
 
 ## Themes
 
-`pkgview` currently ships with 6 built-in runtime themes:
+`petti` currently ships with 6 built-in runtime themes:
 
 - `default-dark`
 - `default-light`
@@ -146,8 +146,8 @@ Notes:
 You can export the currently visible package list to text or JSON:
 
 ```sh
-./pkgview --export-txt packages.txt
-./pkgview --export-json packages.json
+./petti --export-txt packages.txt
+./petti --export-json packages.json
 ```
 
 From inside the TUI, press `e` and choose the format.
@@ -158,7 +158,7 @@ From inside the TUI, press `e` and choose the format.
 
 ```text
 cmd/
-  pkgview/            # entrypoint
+  petti/              # entrypoint
 internal/
   app/                # app state, filtering, sorting
   cli/                # CLI argument handling and program startup
@@ -192,7 +192,7 @@ make cover-check
 ### Run locally
 
 ```sh
-go run ./cmd/pkgview
+go run ./cmd/petti
 ```
 
 ---

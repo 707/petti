@@ -15,7 +15,7 @@
 3. Smoke-test the release build locally:
    ```sh
    make build-release VERSION=0.6.3
-   ./pkgview --version
+   ./petti --version
    ```
 4. Review [README.md](/Users/nad/Documents/Tests/codextest/README.md) for final repo URL, install instructions, and demo asset links.
 5. Make sure the repo has a license file in the root.
