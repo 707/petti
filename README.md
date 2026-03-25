@@ -14,10 +14,23 @@
 
 ## Install
 
+### Homebrew
+
+```sh
+brew install 707/petti/petti
+```
+
+If you prefer the explicit two-step form:
+
+```sh
+brew tap 707/homebrew-petti
+brew install petti
+```
+
 ### From source
 
 ```sh
-git clone <your-repo-url>
+git clone https://github.com/707/petti.git
 cd petti
 go build -o petti ./cmd/petti
 ```
