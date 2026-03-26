@@ -1,6 +1,6 @@
 {
   "name": "petti",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Terminal UI for browsing installed packages across package managers",
   "license": "MIT",
   "homepage": "https://github.com/707/petti",

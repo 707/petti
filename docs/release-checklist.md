@@ -17,7 +17,7 @@
    ```
 3. Smoke-test the release build locally:
    ```sh
-   make build-release VERSION=0.6.4
+   make build-release VERSION=0.6.5
    ./petti --version
    ```
 4. Review [README.md](/Users/nad/Documents/Tests/codextest/README.md) for final repo URL, install instructions, and demo asset links.
@@ -31,7 +31,7 @@
    ```
 2. Create the release-prep commit:
    ```sh
-   git commit -m "release: prepare v0.6.4"
+   git commit -m "release: prepare v0.6.5"
    ```
 
 ## Publish on GitHub
@@ -42,8 +42,8 @@
    ```
 2. Tag the release:
    ```sh
-   git tag v0.6.4
-   git push origin v0.6.4
+   git tag v0.6.5
+   git push origin v0.6.5
    ```
 3. Wait for the `Release` GitHub Actions workflow to publish the binaries and checksums.
 4. Do not retag or replace a published release tag. Cut a new version instead.

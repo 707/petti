@@ -12,7 +12,7 @@ Last updated: 2026-03-26
 - Codebase renamed from `pkgview` to `petti`
 - Go module path updated to `github.com/707/petti`
 - Entry point moved to `cmd/petti`
-- GitHub Releases working through `v0.6.4`
+- GitHub Releases working through `v0.6.5`
 - GoReleaser configured and fixed
 - MIT license added
 - Homebrew tap created and published:
@@ -34,7 +34,7 @@ Last updated: 2026-03-26
 - `make test`
 - `make cover-check`
 - `make build`
-- `make build-release VERSION=0.6.4`
+- `make build-release VERSION=0.6.5`
 - `npm pack --dry-run`
 - Homebrew formula install tested successfully
 
