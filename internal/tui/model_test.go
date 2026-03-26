@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -697,6 +698,14 @@ func TestHelpersAndDefaultExport(t *testing.T) {
 }
 
 func TestFormatRelativeTime(t *testing.T) {
+	originalNow := relativeNow
+	relativeNow = func() time.Time {
+		return time.Date(2026, time.March, 25, 12, 0, 0, 0, time.UTC)
+	}
+	t.Cleanup(func() {
+		relativeNow = originalNow
+	})
+
 	if got := formatRelativeTime(""); got != "-" {
 		t.Fatalf("formatRelativeTime(empty) = %q, want %q", got, "-")
 	}

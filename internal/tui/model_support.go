@@ -408,6 +408,8 @@ func displayGridValue(value string) string {
 	return value
 }
 
+var relativeNow = time.Now
+
 func formatRelativeTime(dateStr string) string {
 	if strings.TrimSpace(dateStr) == "" {
 		return "-"
@@ -416,7 +418,7 @@ func formatRelativeTime(dateStr string) string {
 	if err != nil {
 		return dateStr
 	}
-	duration := time.Since(parsed)
+	duration := relativeNow().Sub(parsed)
 	days := int(duration.Hours() / 24)
 	if days < 0 {
 		return dateStr
