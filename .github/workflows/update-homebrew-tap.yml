@@ -1,9 +1,7 @@
 name: Update Homebrew Tap
 
 on:
-  release:
-    types:
-      - published
+  workflow_dispatch:
 
 jobs:
   update-tap:
@@ -19,12 +17,12 @@ jobs:
           fi
         env:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
 
       - uses: actions/checkout@v6
         if: steps.prereqs.outputs.enabled == 'true'
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.ref_name }}
 
       - name: Clone tap repository
         if: steps.prereqs.outputs.enabled == 'true'
@@ -33,6 +31,11 @@ jobs:
         env:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
+      - name: Wire tap into Homebrew
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: |
+          brew tap 707/homebrew-petti /tmp/homebrew-petti
+
       - name: Regenerate formula from release checksums
         if: steps.prereqs.outputs.enabled == 'true'
         run: |
@@ -40,7 +43,7 @@ jobs:
             --version "${RELEASE_TAG}" \
             --formula /tmp/homebrew-petti/Formula/petti.rb
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
 
       - name: Audit formula
         if: steps.prereqs.outputs.enabled == 'true'
@@ -60,4 +63,4 @@ jobs:
           git commit -m "Update petti ${RELEASE_TAG} formula"
           git push origin main
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}

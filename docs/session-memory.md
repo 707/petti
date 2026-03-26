@@ -35,9 +35,9 @@
 
 1. Keep future releases versioned forward only; never reuse a published tag.
 2. Verify `v0.6.4+` release flow end to end:
-   - `Release`
-   - `ci`
-   - `Update Homebrew Tap` if `HOMEBREW_TAP_TOKEN` is configured
+   - `Release` workflow publishes assets
+   - `update-homebrew-tap` job inside the `Release` workflow updates the tap when `HOMEBREW_TAP_TOKEN` is configured
+   - `Update Homebrew Tap` workflow is manual fallback only
 3. If npm distribution is revisited, publish under a scoped package because unscoped `petti` is blocked by npm name similarity policy.
 4. Continue UX polish and docs/screenshots from the current public baseline rather than reworking distribution.
 
@@ -53,4 +53,5 @@
 - Escalation rule: if implementation requires a major behavior or architecture change from the agreed plan, stop and flag it to the user before proceeding.
 - Release rule: once a release tag is published, do not move it. Fix forward with a new version instead.
 - Homebrew rule: the tap formula must be generated from the published release `checksums.txt`, not edited by hand from stale local artifacts.
+- Release automation rule: keep Homebrew tap updates in the main `Release` workflow so a successful release leaves `brew upgrade petti` in sync by default.
 - Session continuity rule: future agents should read `docs/release-checklist.md` and `docs/session-memory.md` before touching release automation or tags.

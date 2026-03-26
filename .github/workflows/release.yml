@@ -32,3 +32,65 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-homebrew-tap:
+    needs: goreleaser
+    runs-on: macos-latest
+    steps:
+      - name: Check tap update prerequisites
+        id: prereqs
+        run: |
+          if [ -n "${HOMEBREW_TAP_TOKEN:-}" ] && [[ "${RELEASE_TAG}" == v* ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      - uses: actions/checkout@v6
+        if: steps.prereqs.outputs.enabled == 'true'
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Clone tap repository
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: |
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/707/homebrew-petti.git" /tmp/homebrew-petti
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Wire tap into Homebrew
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: |
+          brew tap 707/homebrew-petti /tmp/homebrew-petti
+
+      - name: Regenerate formula from release checksums
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: |
+          sh scripts/update_tap_formula.sh \
+            --version "${RELEASE_TAG}" \
+            --formula /tmp/homebrew-petti/Formula/petti.rb
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      - name: Audit formula
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: brew audit --strict 707/petti/petti
+
+      - name: Commit and push tap update
+        if: steps.prereqs.outputs.enabled == 'true'
+        run: |
+          cd /tmp/homebrew-petti
+          if git diff --quiet -- Formula/petti.rb; then
+            echo "No tap changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/petti.rb
+          git commit -m "Update petti ${RELEASE_TAG} formula"
+          git push origin main
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}

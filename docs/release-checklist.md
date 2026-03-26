@@ -60,7 +60,7 @@
    - `darwin-arm64`
    - `linux-amd64`
    - `linux-arm64`
-2. Verify the `Update Homebrew Tap` workflow ran successfully if `HOMEBREW_TAP_TOKEN` is configured.
+2. Verify the `update-homebrew-tap` job inside the main `Release` workflow ran successfully if `HOMEBREW_TAP_TOKEN` is configured.
 3. Paste the release notes into the GitHub release if you want a cleaner changelog than the auto-generated one.
 4. Validate at least one install path from the published release:
    ```sh
@@ -79,6 +79,6 @@
 - `GITHUB_TOKEN`
   - provided automatically to the release workflow
 - `HOMEBREW_TAP_TOKEN`
-  - required for automatic updates to `707/homebrew-petti`
+  - required for the `update-homebrew-tap` job in the main `Release` workflow
 - `NPM_TOKEN`
   - only needed if scoped npm publishing is enabled later
