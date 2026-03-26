@@ -15,7 +15,7 @@ func TestRealMain(t *testing.T) {
 		runCLI = original
 		version = originalVersion
 	})
-	version = "0.6.3"
+	version = "0.6.4"
 
 	var gotArgs []string
 	runCLI = func(_ context.Context, args []string, deps cli.Deps) int {
@@ -23,8 +23,8 @@ func TestRealMain(t *testing.T) {
 		if deps.Stdout == nil || deps.Stderr == nil {
 			t.Fatal("stdout/stderr should be wired")
 		}
-		if deps.Version != "0.6.3" {
-			t.Fatalf("Version = %q, want %q", deps.Version, "0.6.3")
+		if deps.Version != "0.6.4" {
+			t.Fatalf("Version = %q, want %q", deps.Version, "0.6.4")
 		}
 		return 7
 	}
