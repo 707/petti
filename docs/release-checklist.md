@@ -43,6 +43,7 @@
    git push origin v0.6.3
    ```
 3. Wait for the `Release` GitHub Actions workflow to publish the binaries and checksums.
+4. Do not retag or replace a published release tag. Cut a new version instead.
 
 ## After the GitHub release
 
@@ -51,11 +52,11 @@
    - `darwin-arm64`
    - `linux-amd64`
    - `linux-arm64`
-2. Paste the release notes into the GitHub release if you want a cleaner changelog than the auto-generated one.
-3. If you set up a Homebrew tap later, update the formula with the new archive URL and checksum.
+2. Verify the `Update Homebrew Tap` workflow ran successfully if `HOMEBREW_TAP_TOKEN` is configured.
+3. Paste the release notes into the GitHub release if you want a cleaner changelog than the auto-generated one.
 
 ## Recommended immediate follow-up
 
 1. Add a demo GIF or screenshot to the README.
-2. Add a Homebrew tap repository once the GitHub repo is stable.
-3. Optionally add a small install script for macOS, Linux, and WSL2.
+2. Keep `HOMEBREW_TAP_TOKEN` configured so tap checksum updates remain automatic.
+3. Optionally publish a scoped npm package later if `npx` support becomes a priority.

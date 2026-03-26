@@ -1,0 +1,47 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  update-tap:
+    if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' && startsWith(github.event.release.tag_name, 'v') }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Clone tap repository
+        run: |
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/707/homebrew-petti.git" /tmp/homebrew-petti
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Regenerate formula from release checksums
+        run: |
+          sh scripts/update_tap_formula.sh \
+            --version "${RELEASE_TAG}" \
+            --formula /tmp/homebrew-petti/Formula/petti.rb
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Audit formula
+        run: brew audit --strict 707/petti/petti
+
+      - name: Commit and push tap update
+        run: |
+          cd /tmp/homebrew-petti
+          if git diff --quiet -- Formula/petti.rb; then
+            echo "No tap changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/petti.rb
+          git commit -m "Update petti ${RELEASE_TAG} formula"
+          git push origin main
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
