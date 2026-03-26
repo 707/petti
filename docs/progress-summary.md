@@ -27,7 +27,8 @@ Last updated: 2026-03-26
 - Homebrew checksum drift prevention added:
   - `scripts/update_tap_formula.sh`
   - `scripts/update_tap_formula_test.sh`
-  - `Update Homebrew Tap` workflow
+  - `update-homebrew-tap` job in the main `Release` workflow
+  - `Update Homebrew Tap` manual fallback workflow
 
 ## Verified
 
@@ -37,6 +38,7 @@ Last updated: 2026-03-26
 - `make build-release VERSION=0.6.5`
 - `npm pack --dry-run`
 - Homebrew formula install tested successfully
+- Homebrew upgrade flow verified through `v0.6.5`
 
 ## Distribution status
 

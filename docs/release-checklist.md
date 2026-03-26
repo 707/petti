@@ -61,18 +61,27 @@
    - `linux-amd64`
    - `linux-arm64`
 2. Verify the `update-homebrew-tap` job inside the main `Release` workflow ran successfully if `HOMEBREW_TAP_TOKEN` is configured.
-3. Paste the release notes into the GitHub release if you want a cleaner changelog than the auto-generated one.
+3. Replace the auto-generated GitHub release body with a short human-written summary:
+   - headline improvements
+   - install/upgrade command
+   - note that Homebrew now follows the tagged release automatically when the tap job succeeds
 4. Validate at least one install path from the published release:
    ```sh
    brew install 707/petti/petti
    petti --version
+   ```
+5. Validate upgrade behavior after at least one prior version exists:
+   ```sh
+   brew update
+   brew upgrade petti
    ```
 
 ## Recommended immediate follow-up
 
 1. Add a demo GIF or screenshot to the README.
 2. Keep `HOMEBREW_TAP_TOKEN` configured so tap checksum updates remain automatic.
-3. Optionally publish a scoped npm package later if `npx` support becomes a priority.
+3. If Homebrew does not advance after a release, check the `update-homebrew-tap` job before changing the formula by hand.
+4. Optionally publish a scoped npm package later if `npx` support becomes a priority.
 
 ## Required GitHub secrets
 

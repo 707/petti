@@ -34,12 +34,13 @@
 ## Next steps
 
 1. Keep future releases versioned forward only; never reuse a published tag.
-2. Verify `v0.6.4+` release flow end to end:
+2. Treat `v0.6.5` as the first verified end-to-end release where:
    - `Release` workflow publishes assets
-   - `update-homebrew-tap` job inside the `Release` workflow updates the tap when `HOMEBREW_TAP_TOKEN` is configured
-   - `Update Homebrew Tap` workflow is manual fallback only
-3. If npm distribution is revisited, publish under a scoped package because unscoped `petti` is blocked by npm name similarity policy.
-4. Continue UX polish and docs/screenshots from the current public baseline rather than reworking distribution.
+   - `update-homebrew-tap` job inside the same workflow updates `707/homebrew-petti`
+   - `brew upgrade petti` can track the new tagged version after `brew update`
+3. Keep `Update Homebrew Tap` as a manual fallback only.
+4. If npm distribution is revisited, publish under a scoped package because unscoped `petti` is blocked by npm name similarity policy.
+5. Continue UX polish and docs/screenshots from the current public baseline rather than reworking distribution.
 
 ## Decisions
 
