@@ -1,23 +1,9 @@
-# petti
+# petti 
+பெட்டி (peṭṭi): noun — A word to describe a box, case, or chest used for storage in Tamil
 
-<p align="center">
-  <b>One terminal view for the packages you actually have installed.</b>
-</p>
+A TUI view that auto-detects Homebrew, casks, npm, and pip packages you have personally installed. Comes with filtering, dependency signals, export, live theme switching, and read-only uninstall helpers.
 
-<p align="center">
-  Browse Homebrew, casks, npm, and pip packages in one TUI with filtering, dependency signals, export, live theme switching, and read-only uninstall helpers.
-</p>
-
-<p align="center">
-  <img src="petti.gif" alt="petti demo" width="82%">
-</p>
-
-<p align="center">
-  <img src="petti-search.png" alt="petti search view" width="49%">
-  <img src="petti-filter.png" alt="petti filter view" width="49%">
-</p>
-
-
+![demo](petti.gif)
 
 ---
 
@@ -26,14 +12,14 @@
 ### Homebrew
 
 ```sh
-brew install 707/petti/petti
+brew install petti
 ```
 
 If you prefer the explicit two-step form:
 
 ```sh
 brew tap 707/homebrew-petti
-brew install petti
+brew install 707/petti/petti
 ```
 
 ### Install script
@@ -80,7 +66,7 @@ go run ./cmd/petti
 ./petti
 ```
 
-The app detects packages from supported managers, shows them in a dense terminal grid, and lets you filter, inspect, sort, export, and review uninstall commands without changing your system.
+Petti detects packages from supported managers, shows them in a TUI, and lets you filter, inspect, sort, export, and review uninstall commands without changing your system.
 
 ### Version
 
@@ -242,7 +228,10 @@ go run ./cmd/petti
 
 - npm distribution via a scoped package
 - broader metadata coverage per package manager
-- native Windows support if the package-manager story is clarified
+- duplicate flags
+
+## Out of Scope
+- Ability to directly install and uninstall via petti
 
 ---
 
