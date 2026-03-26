@@ -6,6 +6,15 @@
 - Core v1 implementation now exists across collectors, UI state, Bubble Tea TUI, CLI orchestration, and binary entrypoint.
 - `internal/model`, `internal/collectors`, `internal/app`, `internal/export`, `internal/tui`, `internal/cli`, and `cmd/petti` are all at 100% statement coverage with passing tests.
 - Repo tooling now includes a `Makefile`, CI workflow, and coverage gate script.
+- Public distribution is now live through GitHub Releases and Homebrew tap:
+  - app repo: `707/petti`
+  - tap repo: `707/homebrew-petti`
+  - install command: `brew install 707/petti/petti`
+- Release tooling now also includes:
+  - GoReleaser release workflow
+  - Homebrew tap auto-update workflow
+  - npm wrapper package scaffold
+  - install script at `scripts/install.sh`
 - `v0.5` has been committed as the baseline snapshot.
 - The next UI iteration has started:
   - default full-width layout
@@ -24,10 +33,13 @@
 
 ## Next steps
 
-1. Use [next-session-llmfit-ui.md](/Users/nad/Documents/Tests/codextest/docs/next-session-llmfit-ui.md) as the brief for the next visual polish pass on the new full-layout grid.
-2. Tighten the full-layout density, header treatment, selected-row styling, and popup styling so the screen feels more deliberately `llmfit`-inspired.
-3. Treat compact as a compatibility layout only, selected by `--layout compact`.
-4. Consider baseline snapshot diffing and read-only jobs/history only after the full layout is visually strong.
+1. Keep future releases versioned forward only; never reuse a published tag.
+2. Verify `v0.6.4+` release flow end to end:
+   - `Release`
+   - `ci`
+   - `Update Homebrew Tap` if `HOMEBREW_TAP_TOKEN` is configured
+3. If npm distribution is revisited, publish under a scoped package because unscoped `petti` is blocked by npm name similarity policy.
+4. Continue UX polish and docs/screenshots from the current public baseline rather than reworking distribution.
 
 ## Decisions
 
@@ -39,3 +51,6 @@
 - Strict engineering rule: show red first, then minimal green, then refactor.
 - Strict quality rule: maintain 100% passing status and 100% code coverage for every package changed in the active slice.
 - Escalation rule: if implementation requires a major behavior or architecture change from the agreed plan, stop and flag it to the user before proceeding.
+- Release rule: once a release tag is published, do not move it. Fix forward with a new version instead.
+- Homebrew rule: the tap formula must be generated from the published release `checksums.txt`, not edited by hand from stale local artifacts.
+- Session continuity rule: future agents should read `docs/release-checklist.md` and `docs/session-memory.md` before touching release automation or tags.

@@ -7,31 +7,47 @@ on:
 
 jobs:
   publish:
-    if: ${{ secrets.NPM_TOKEN != '' && startsWith(github.event.release.tag_name, 'v') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
     steps:
+      - name: Check npm publish prerequisites
+        id: prereqs
+        run: |
+          if [ -n "${NPM_TOKEN:-}" ] && [[ "${RELEASE_TAG}" == v* ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
       - uses: actions/checkout@v6
+        if: steps.prereqs.outputs.enabled == 'true'
         with:
           ref: ${{ github.event.release.tag_name }}
 
       - uses: actions/setup-node@v4
+        if: steps.prereqs.outputs.enabled == 'true'
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Verify package version matches release tag
+        if: steps.prereqs.outputs.enabled == 'true'
         run: |
           node -e "const pkg=require('./package.json'); const tag=process.env.RELEASE_TAG; if ('v' + pkg.version !== tag) { throw new Error(`package.json version ${pkg.version} does not match ${tag}`); }"
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
 
       - name: Test package wrapper
+        if: steps.prereqs.outputs.enabled == 'true'
         run: npm test
 
       - name: Publish to npm
+        if: steps.prereqs.outputs.enabled == 'true'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

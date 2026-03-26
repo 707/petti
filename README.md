@@ -8,7 +8,16 @@
   Browse Homebrew, casks, npm, and pip packages in one TUI with filtering, dependency signals, export, live theme switching, and read-only uninstall helpers.
 </p>
 
-<!-- Add demo.gif or screenshot here later -->
+<p align="center">
+  <img src="petti.gif" alt="petti demo" width="82%">
+</p>
+
+<p align="center">
+  <img src="petti-search.png" alt="petti search view" width="49%">
+  <img src="petti-filter.png" alt="petti filter view" width="49%">
+</p>
+
+
 
 ---
 
@@ -231,7 +240,6 @@ go run ./cmd/petti
 
 ## Roadmap
 
-- screenshot / GIF in README
 - npm distribution via a scoped package
 - broader metadata coverage per package manager
 - native Windows support if the package-manager story is clarified
